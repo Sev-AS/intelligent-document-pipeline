@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-artifacts:
+    name: Validate Compose, Power Automate & JSON Schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+
+      - name: Validate Power Automate flows, Adaptive Cards, SharePoint & samples JSON
+        run: |
+          python3 -c "
+          import glob, json
+          paths = (
+              glob.glob('power-automate/**/*.json', recursive=True)
+              + glob.glob('sharepoint/*.json')
+              + glob.glob('infra/*.json')
+              + glob.glob('samples/emails/*.json')
+          )
+          for p in sorted(paths):
+              with open(p, encoding='utf-8') as f:
+                  json.load(f)
+              print(f'Valid JSON: {p}')
+          "
+
+  test-and-lint:
+    name: Ruff Lint, Unit Tests & Local Pipeline Simulation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt ruff
+
+      - name: Run Ruff linter
+        run: ruff check src tests scripts
+
+      - name: Run unit tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+
+      - name: Run offline pipeline simulation against sample emails
+        env:
+          PYTHONPATH: src
+        run: python scripts/run_local_pipeline.py
