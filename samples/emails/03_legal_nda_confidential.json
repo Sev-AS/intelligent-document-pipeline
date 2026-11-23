@@ -1,0 +1,18 @@
+{
+  "document_id": "doc-2026-0003",
+  "source_message_id": "AAMkAGI2TG93AAA1003",
+  "sender": "counsel@meridian-logistics.example",
+  "subject": "Redlined Mutual NDA for Q3 Pilot",
+  "body_excerpt": "Attached is our legal team's redline of the Mutual Non-Disclosure Agreement for your review.",
+  "file_name": "Meridian_Mutual_NDA_v2_Redline.pdf",
+  "mime_type": "application/pdf",
+  "extraction": {
+    "ocr_text": "STRICTLY CONFIDENTIAL\nMUTUAL NON-DISCLOSURE AGREEMENT\nThis Non-Disclosure Agreement is entered into between Meridian Logistics Corp and Contoso Ltd. Section 7: Indemnification and Governing Law. Neither party shall disclose proprietary trade secrets...",
+    "page_count": 6,
+    "ocr_confidence": 0.96,
+    "vendor_name": "Meridian Logistics Corp",
+    "invoice_total": null,
+    "currency": null,
+    "document_date": "2026-05-12"
+  }
+}

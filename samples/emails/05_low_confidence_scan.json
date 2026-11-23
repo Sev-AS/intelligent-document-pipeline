@@ -1,0 +1,18 @@
+{
+  "document_id": "doc-2026-0005",
+  "source_message_id": "AAMkAGI2TG93AAA1005",
+  "sender": "dispatch@regional-freight.example",
+  "subject": "Scanned receipt from warehouse dock 3",
+  "body_excerpt": "Driver sent this photo from his phone, please file it.",
+  "file_name": "IMG_4482_scan.jpg",
+  "mime_type": "image/jpeg",
+  "extraction": {
+    "ocr_text": "rceipt #.. 44.. smudged",
+    "page_count": 1,
+    "ocr_confidence": 0.41,
+    "vendor_name": null,
+    "invoice_total": null,
+    "currency": null,
+    "document_date": null
+  }
+}

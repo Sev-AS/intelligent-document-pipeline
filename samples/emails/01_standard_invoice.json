@@ -1,0 +1,18 @@
+{
+  "document_id": "doc-2026-0001",
+  "source_message_id": "AAMkAGI2TG93AAA1001",
+  "sender": "billing@northwind-supplies.example",
+  "subject": "Invoice #INV-4082 - Monthly Office Supplies",
+  "body_excerpt": "Hi Accounting team, attached is our invoice for May office consumables. Terms are Net 30.",
+  "file_name": "INV-4082_Northwind_Supplies.pdf",
+  "mime_type": "application/pdf",
+  "extraction": {
+    "ocr_text": "NORTHWIND OFFICE SUPPLIES INC.\nINVOICE #INV-4082\nBill To: Operations HQ\nPayment Terms: Net 30\nItem: Copy paper, toner cartridges, ergonomic folders\nSubtotal: $1,350.00\nTax: $108.00\nAmount Due: $1,458.00 USD",
+    "page_count": 1,
+    "ocr_confidence": 0.98,
+    "vendor_name": "Northwind Office Supplies Inc.",
+    "invoice_total": 1458.0,
+    "currency": "USD",
+    "document_date": "2026-05-10"
+  }
+}

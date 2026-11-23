@@ -1,0 +1,18 @@
+{
+  "document_id": "doc-2026-0004",
+  "source_message_id": "AAMkAGI2TG93AAA1004",
+  "sender": "new.hire@example.org",
+  "subject": "Completed Onboarding Packet & Direct Deposit Form",
+  "body_excerpt": "Hello HR, attached are my signed onboarding forms and payroll direct deposit details.",
+  "file_name": "Onboarding_Payroll_Form.pdf",
+  "mime_type": "application/pdf",
+  "extraction": {
+    "ocr_text": "EMPLOYEE ONBOARDING & PAYROLL DIRECT DEPOSIT FORM\nEmployee Name: Jordan Taylor (Synthetic Demo)\nTax ID / SSN: 000-11-2222\nBank Routing Number: 021000021\nDirect Deposit Election: Checking Account",
+    "page_count": 2,
+    "ocr_confidence": 0.95,
+    "vendor_name": null,
+    "invoice_total": null,
+    "currency": null,
+    "document_date": "2026-05-12"
+  }
+}

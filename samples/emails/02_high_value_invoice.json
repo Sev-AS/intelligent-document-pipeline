@@ -1,0 +1,18 @@
+{
+  "document_id": "doc-2026-0002",
+  "source_message_id": "AAMkAGI2TG93AAA1002",
+  "sender": "ar@cloudinfra-partner.example",
+  "subject": "Invoice #CI-9914 - Annual Cloud Reserved Capacity",
+  "body_excerpt": "Please find attached the annual reserved compute renewal invoice due Net 30.",
+  "file_name": "CI-9914_Annual_Renewal.pdf",
+  "mime_type": "application/pdf",
+  "extraction": {
+    "ocr_text": "CLOUDINFRA PARTNER LLC\nINVOICE #CI-9914\nDescription: Annual Enterprise Cloud Reserved Nodes (12 months)\nBill To: IT Infrastructure\nPayment Terms: Net 30\nAmount Due: $18,450.00 USD",
+    "page_count": 2,
+    "ocr_confidence": 0.97,
+    "vendor_name": "CloudInfra Partner LLC",
+    "invoice_total": 18450.0,
+    "currency": "USD",
+    "document_date": "2026-05-11"
+  }
+}
