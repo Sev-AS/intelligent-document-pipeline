@@ -1,0 +1,93 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sharepointSiteUrl": {
+      "type": "String",
+      "defaultValue": "https://contoso.sharepoint.com/sites/DocumentOperations"
+    }
+  },
+  "triggers": {
+    "When_reviewer_submits_Teams_Adaptive_Card": {
+      "type": "Request",
+      "kind": "Http",
+      "inputs": {
+        "schema": {
+          "type": "object",
+          "required": ["decision", "document_id", "quarantine_path"],
+          "properties": {
+            "decision": { "type": "string", "enum": ["approve", "reject"] },
+            "document_id": { "type": "string" },
+            "quarantine_path": { "type": "string" },
+            "override_category": { "type": "string" },
+            "reviewer_notes": { "type": "string" },
+            "reviewer_upn": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "actions": {
+    "Check_Reviewer_Decision": {
+      "type": "If",
+      "runAfter": {},
+      "expression": {
+        "equals": [
+          "@triggerBody()?['decision']",
+          "approve"
+        ]
+      },
+      "actions": {
+        "Move_File_From_Quarantine_To_Final_Library": {
+          "type": "ApiConnection",
+          "inputs": {
+            "host": { "connectionName": "shared_sharepointonline" },
+            "method": "post",
+            "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/moveFileAsync",
+            "body": {
+              "sourceFileId": "@triggerBody()?['quarantine_path']",
+              "destinationFolderPath": "/RoutedDocuments/@{coalesce(triggerBody()?['override_category'], 'general')}",
+              "nameConflictBehavior": 1
+            }
+          }
+        },
+        "Write_Approval_Audit_Record": {
+          "type": "ApiConnection",
+          "runAfter": {
+            "Move_File_From_Quarantine_To_Final_Library": ["Succeeded"]
+          },
+          "inputs": {
+            "host": { "connectionName": "shared_sharepointonline" },
+            "method": "post",
+            "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/tables/DocumentRoutingAudit/items",
+            "body": {
+              "Title": "@triggerBody()?['document_id']",
+              "Decision": "Approved",
+              "TargetCategory": "@triggerBody()?['override_category']",
+              "ReviewerUPN": "@triggerBody()?['reviewer_upn']",
+              "ReviewerNotes": "@triggerBody()?['reviewer_notes']"
+            }
+          }
+        }
+      },
+      "else": {
+        "actions": {
+          "Write_Rejection_Audit_Record": {
+            "type": "ApiConnection",
+            "inputs": {
+              "host": { "connectionName": "shared_sharepointonline" },
+              "method": "post",
+              "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/tables/DocumentRoutingAudit/items",
+              "body": {
+                "Title": "@triggerBody()?['document_id']",
+                "Decision": "Rejected_Quarantined",
+                "ReviewerUPN": "@triggerBody()?['reviewer_upn']",
+                "ReviewerNotes": "@triggerBody()?['reviewer_notes']"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

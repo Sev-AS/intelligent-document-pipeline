@@ -1,0 +1,251 @@
+{
+  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "sharepointSiteUrl": {
+      "type": "String",
+      "defaultValue": "https://contoso.sharepoint.com/sites/DocumentOperations"
+    },
+    "azureOpenAiEndpoint": {
+      "type": "String",
+      "defaultValue": "https://your-resource.openai.azure.com"
+    },
+    "azureOpenAiDeployment": {
+      "type": "String",
+      "defaultValue": "gpt-4o-mini"
+    },
+    "confidenceThreshold": {
+      "type": "Float",
+      "defaultValue": 0.85
+    },
+    "highValueInvoiceThreshold": {
+      "type": "Float",
+      "defaultValue": 10000
+    },
+    "teamsGroupId": {
+      "type": "String",
+      "defaultValue": "00000000-0000-0000-0000-000000000000"
+    },
+    "teamsEscalationChannelId": {
+      "type": "String",
+      "defaultValue": "19:example-channel@thread.tacv2"
+    }
+  },
+  "triggers": {
+    "When_a_new_email_arrives_with_attachments": {
+      "type": "ApiConnectionNotification",
+      "inputs": {
+        "host": {
+          "connectionName": "shared_office365"
+        },
+        "path": "/v3/Mail/OnNewEmail",
+        "queries": {
+          "folderPath": "Inbox",
+          "hasAttachments": true,
+          "includeAttachments": true,
+          "importance": "Any"
+        }
+      }
+    }
+  },
+  "actions": {
+    "For_each_attachment": {
+      "type": "Foreach",
+      "foreach": "@triggerOutputs()?['body/attachments']",
+      "runAfter": {},
+      "actions": {
+        "Skip_inline_signatures": {
+          "type": "If",
+          "expression": {
+            "and": [
+              {
+                "equals": [
+                  "@items('For_each_attachment')?['isInline']",
+                  false
+                ]
+              }
+            ]
+          },
+          "actions": {
+            "AI_Builder_Extract_Document_Text": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_aibuilder"
+                },
+                "method": "post",
+                "path": "/predict/document-processing",
+                "body": {
+                  "fileName": "@items('For_each_attachment')?['name']",
+                  "contentBytes": "@items('For_each_attachment')?['contentBytes']"
+                }
+              }
+            },
+            "Azure_OpenAI_Classify_Document": {
+              "type": "Http",
+              "runAfter": {
+                "AI_Builder_Extract_Document_Text": ["Succeeded"]
+              },
+              "inputs": {
+                "method": "POST",
+                "uri": "@{parameters('azureOpenAiEndpoint')}/openai/deployments/@{parameters('azureOpenAiDeployment')}/chat/completions?api-version=2024-08-01-preview",
+                "headers": {
+                  "Content-Type": "application/json"
+                },
+                "authentication": {
+                  "type": "ManagedServiceIdentity",
+                  "audience": "https://cognitiveservices.azure.com"
+                },
+                "body": {
+                  "temperature": 0.1,
+                  "response_format": {
+                    "type": "json_object"
+                  },
+                  "messages": [
+                    {
+                      "role": "system",
+                      "content": "Classify the document into invoice, legal_contract, hr_document, vendor_compliance, operations, or general. Return strict JSON with category, confidence, sensitivity, summary, sensitivity_flags, extracted_vendor, extracted_amount, currency, and reasoning."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sender: @{triggerOutputs()?['body/from']}\nSubject: @{triggerOutputs()?['body/subject']}\nFile: @{items('For_each_attachment')?['name']}\nOCR Text: @{body('AI_Builder_Extract_Document_Text')?['extractedText']}"
+                    }
+                  ]
+                }
+              }
+            },
+            "Parse_Classification_JSON": {
+              "type": "ParseJson",
+              "runAfter": {
+                "Azure_OpenAI_Classify_Document": ["Succeeded"]
+              },
+              "inputs": {
+                "content": "@json(body('Azure_OpenAI_Classify_Document')?['choices'][0]?['message']?['content'])",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "category": { "type": "string" },
+                    "confidence": { "type": "number" },
+                    "sensitivity": { "type": "string" },
+                    "summary": { "type": "string" },
+                    "extracted_vendor": { "type": ["string", "null"] },
+                    "extracted_amount": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            },
+            "Evaluate_Escalation_Policy": {
+              "type": "If",
+              "runAfter": {
+                "Parse_Classification_JSON": ["Succeeded"]
+              },
+              "expression": {
+                "or": [
+                  {
+                    "less": [
+                      "@body('Parse_Classification_JSON')?['confidence']",
+                      "@parameters('confidenceThreshold')"
+                    ]
+                  },
+                  {
+                    "not": {
+                      "equals": [
+                        "@body('Parse_Classification_JSON')?['sensitivity']",
+                        "normal"
+                      ]
+                    }
+                  },
+                  {
+                    "and": [
+                      {
+                        "equals": [
+                          "@body('Parse_Classification_JSON')?['category']",
+                          "invoice"
+                        ]
+                      },
+                      {
+                        "greaterOrEquals": [
+                          "@coalesce(body('Parse_Classification_JSON')?['extracted_amount'], 0)",
+                          "@parameters('highValueInvoiceThreshold')"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Upload_To_SharePoint_Quarantine": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": { "connectionName": "shared_sharepointonline" },
+                    "method": "post",
+                    "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/files",
+                    "queries": {
+                      "folderPath": "/DocumentIntakeQuarantine/PendingReview",
+                      "name": "@items('For_each_attachment')?['name']"
+                    },
+                    "body": "@base64ToBinary(items('For_each_attachment')?['contentBytes'])"
+                  }
+                },
+                "Post_Teams_Escalation_Adaptive_Card": {
+                  "type": "ApiConnection",
+                  "runAfter": {
+                    "Upload_To_SharePoint_Quarantine": ["Succeeded"]
+                  },
+                  "inputs": {
+                    "host": { "connectionName": "shared_teams" },
+                    "method": "post",
+                    "path": "/v1.0/teams/@{parameters('teamsGroupId')}/channels/@{parameters('teamsEscalationChannelId')}/messages",
+                    "body": {
+                      "summary": "Document escalated for human review: @{items('For_each_attachment')?['name']}",
+                      "category": "@body('Parse_Classification_JSON')?['category']",
+                      "sensitivity": "@body('Parse_Classification_JSON')?['sensitivity']",
+                      "confidence": "@body('Parse_Classification_JSON')?['confidence']"
+                    }
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Upload_To_Target_SharePoint_Library": {
+                    "type": "ApiConnection",
+                    "inputs": {
+                      "host": { "connectionName": "shared_sharepointonline" },
+                      "method": "post",
+                      "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/files",
+                      "queries": {
+                        "folderPath": "/RoutedDocuments/@{body('Parse_Classification_JSON')?['category']}",
+                        "name": "@items('For_each_attachment')?['name']"
+                      },
+                      "body": "@base64ToBinary(items('For_each_attachment')?['contentBytes'])"
+                    }
+                  },
+                  "Update_SharePoint_File_Metadata": {
+                    "type": "ApiConnection",
+                    "runAfter": {
+                      "Upload_To_Target_SharePoint_Library": ["Succeeded"]
+                    },
+                    "inputs": {
+                      "host": { "connectionName": "shared_sharepointonline" },
+                      "method": "patch",
+                      "path": "/datasets/@{encodeURIComponent(parameters('sharepointSiteUrl'))}/tables/RoutedDocuments/items/@{body('Upload_To_Target_SharePoint_Library')?['ItemId']}",
+                      "body": {
+                        "DocCategory": "@body('Parse_Classification_JSON')?['category']",
+                        "ConfidenceScore": "@body('Parse_Classification_JSON')?['confidence']",
+                        "SensitivityLevel": "@body('Parse_Classification_JSON')?['sensitivity']",
+                        "ReviewStatus": "AutoRouted",
+                        "SourceMessageId": "@triggerOutputs()?['body/id']",
+                        "ExtractedVendor": "@body('Parse_Classification_JSON')?['extracted_vendor']",
+                        "ExtractedAmount": "@body('Parse_Classification_JSON')?['extracted_amount']"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

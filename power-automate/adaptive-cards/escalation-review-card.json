@@ -1,0 +1,95 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "Container",
+      "style": "attention",
+      "bleed": true,
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Document Review Required — Human Escalation",
+          "weight": "Bolder",
+          "size": "Medium",
+          "color": "Attention"
+        },
+        {
+          "type": "TextBlock",
+          "text": "File held in SharePoint Quarantine until approved or rerouted.",
+          "isSubtle": true,
+          "spacing": "None",
+          "wrap": true
+        }
+      ]
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        { "title": "File", "value": "${file_name}" },
+        { "title": "Sender", "value": "${sender}" },
+        { "title": "Subject", "value": "${subject}" },
+        { "title": "Predicted Category", "value": "${category}" },
+        { "title": "Confidence", "value": "${confidence_pct}" },
+        { "title": "Sensitivity", "value": "${sensitivity}" },
+        { "title": "Escalation Reasons", "value": "${escalation_reasons}" },
+        { "title": "Quarantine Link", "value": "${quarantine_path}" }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "AI Summary",
+      "weight": "Bolder",
+      "spacing": "Medium"
+    },
+    {
+      "type": "TextBlock",
+      "text": "${summary}",
+      "wrap": true
+    },
+    {
+      "type": "Input.ChoiceSet",
+      "id": "override_category",
+      "label": "Confirm or override destination category",
+      "value": "${category}",
+      "choices": [
+        { "title": "Finance / Invoices", "value": "invoice" },
+        { "title": "Legal / Contracts", "value": "legal_contract" },
+        { "title": "HR / Personnel", "value": "hr_document" },
+        { "title": "Vendor Compliance", "value": "vendor_compliance" },
+        { "title": "Operations / Logistics", "value": "operations" },
+        { "title": "General Archive", "value": "general" }
+      ]
+    },
+    {
+      "type": "Input.Text",
+      "id": "reviewer_notes",
+      "label": "Reviewer note (logged to SharePoint audit trail)",
+      "placeholder": "Optional reason for approval, override, or rejection",
+      "isMultiline": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "Approve & Route to SharePoint",
+      "style": "positive",
+      "data": {
+        "decision": "approve",
+        "document_id": "${document_id}",
+        "quarantine_path": "${quarantine_path}"
+      }
+    },
+    {
+      "type": "Action.Submit",
+      "title": "Reject & Keep Quarantined",
+      "style": "destructive",
+      "data": {
+        "decision": "reject",
+        "document_id": "${document_id}",
+        "quarantine_path": "${quarantine_path}"
+      }
+    }
+  ]
+}

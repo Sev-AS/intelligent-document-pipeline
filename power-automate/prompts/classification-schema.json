@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DocumentClassificationResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "category",
+    "confidence",
+    "sensitivity",
+    "summary",
+    "sensitivity_flags",
+    "extracted_vendor",
+    "extracted_amount",
+    "currency",
+    "reasoning"
+  ],
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "invoice",
+        "legal_contract",
+        "hr_document",
+        "vendor_compliance",
+        "operations",
+        "general"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["normal", "confidential", "restricted"]
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 280
+    },
+    "sensitivity_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extracted_vendor": {
+      "type": ["string", "null"]
+    },
+    "extracted_amount": {
+      "type": ["number", "null"]
+    },
+    "currency": {
+      "type": ["string", "null"]
+    },
+    "reasoning": {
+      "type": "string",
+      "maxLength": 400
+    }
+  }
+}
