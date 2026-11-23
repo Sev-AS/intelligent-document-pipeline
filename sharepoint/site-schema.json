@@ -1,0 +1,109 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/site-design-script-actions.schema.json",
+  "actions": [
+    {
+      "verb": "createSPList",
+      "listName": "RoutedDocuments",
+      "templateType": 101,
+      "subactions": [
+        {
+          "verb": "setDescription",
+          "description": "Primary destination library for AI-classified documents routed from email."
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Choice",
+          "displayName": "DocCategory",
+          "internalName": "DocCategory",
+          "isRequired": true,
+          "addToDefaultView": true,
+          "choices": [
+            "invoice",
+            "legal_contract",
+            "hr_document",
+            "vendor_compliance",
+            "operations",
+            "general"
+          ]
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Number",
+          "displayName": "ConfidenceScore",
+          "internalName": "ConfidenceScore",
+          "isRequired": false,
+          "addToDefaultView": true
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Choice",
+          "displayName": "SensitivityLevel",
+          "internalName": "SensitivityLevel",
+          "isRequired": true,
+          "addToDefaultView": true,
+          "choices": ["normal", "confidential", "restricted"]
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Choice",
+          "displayName": "ReviewStatus",
+          "internalName": "ReviewStatus",
+          "isRequired": true,
+          "addToDefaultView": true,
+          "choices": ["AutoRouted", "PendingHumanReview", "ApprovedByHuman", "Quarantined"]
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Text",
+          "displayName": "SourceMessageId",
+          "internalName": "SourceMessageId",
+          "isRequired": false,
+          "addToDefaultView": false
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Text",
+          "displayName": "ExtractedVendor",
+          "internalName": "ExtractedVendor",
+          "isRequired": false,
+          "addToDefaultView": true
+        },
+        {
+          "verb": "addSPField",
+          "fieldType": "Number",
+          "displayName": "ExtractedAmount",
+          "internalName": "ExtractedAmount",
+          "isRequired": false,
+          "addToDefaultView": true
+        }
+      ]
+    },
+    {
+      "verb": "createSPList",
+      "listName": "DocumentIntakeQuarantine",
+      "templateType": 101,
+      "subactions": [
+        {
+          "verb": "setDescription",
+          "description": "Restricted staging library holding low-confidence or sensitive documents pending Teams review."
+        }
+      ]
+    },
+    {
+      "verb": "createSPList",
+      "listName": "DocumentRoutingAudit",
+      "templateType": 100,
+      "subactions": [
+        {
+          "verb": "setDescription",
+          "description": "Immutable audit log of automatic routing decisions and human approvals from Teams."
+        },
+        { "verb": "addSPField", "fieldType": "Text", "displayName": "Decision", "addToDefaultView": true },
+        { "verb": "addSPField", "fieldType": "Text", "displayName": "TargetCategory", "addToDefaultView": true },
+        { "verb": "addSPField", "fieldType": "Text", "displayName": "ReviewerUPN", "addToDefaultView": true },
+        { "verb": "addSPField", "fieldType": "Note", "displayName": "ReviewerNotes", "addToDefaultView": true }
+      ]
+    }
+  ],
+  "version": 1
+}

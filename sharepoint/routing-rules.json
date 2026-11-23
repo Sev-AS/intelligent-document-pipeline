@@ -1,0 +1,42 @@
+{
+  "quarantine_library": "/DocumentIntakeQuarantine/PendingReview",
+  "default_escalation_channel": "Document-Triage-Ops",
+  "categories": {
+    "invoice": {
+      "sharepoint_library": "/RoutedDocuments/Finance/Invoices",
+      "retention_label": "Financial-7Years",
+      "escalation_channel": "Finance-Approvals",
+      "always_escalate": false
+    },
+    "legal_contract": {
+      "sharepoint_library": "/RoutedDocuments/Legal/Contracts",
+      "retention_label": "Legal-Permanent",
+      "escalation_channel": "Legal-Review",
+      "always_escalate": true
+    },
+    "hr_document": {
+      "sharepoint_library": "/RoutedDocuments/HR/Restricted",
+      "retention_label": "HR-Confidential-5Years",
+      "escalation_channel": "People-Ops-Private",
+      "always_escalate": true
+    },
+    "vendor_compliance": {
+      "sharepoint_library": "/RoutedDocuments/Procurement/Compliance",
+      "retention_label": "Vendor-5Years",
+      "escalation_channel": "Procurement-Ops",
+      "always_escalate": false
+    },
+    "operations": {
+      "sharepoint_library": "/RoutedDocuments/Operations/Shipments",
+      "retention_label": "Operations-3Years",
+      "escalation_channel": "Document-Triage-Ops",
+      "always_escalate": false
+    },
+    "general": {
+      "sharepoint_library": "/RoutedDocuments/General/Archive",
+      "retention_label": "Standard-2Years",
+      "escalation_channel": "Document-Triage-Ops",
+      "always_escalate": false
+    }
+  }
+}

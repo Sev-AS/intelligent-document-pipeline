@@ -1,0 +1,29 @@
+# Secrets & environment
+.env
+.env.local
+.env.*.local
+infra/parameters.json
+*.pfx
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+
+# Local outputs & logs
+output/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+services:
+  doc-router:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: intelligent-doc-router
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${BIND_HOST:-127.0.0.1}:8000:8000"
+    environment:
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-gpt-4o-mini}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-08-01-preview}
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.85}
+      HIGH_VALUE_INVOICE_THRESHOLD: ${HIGH_VALUE_INVOICE_THRESHOLD:-10000}
+      API_KEY: ${API_KEY:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
